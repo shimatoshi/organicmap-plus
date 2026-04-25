@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="../manifest.webmanifest">
+<meta name="theme-color" content="#1a1a2e">
 <title>名所ガイド - Organic Maps Plus</title>
 <style>
 :root {
@@ -200,6 +202,7 @@ header h1 { font-size: 1.1em; white-space: nowrap; }
 </div>
 
 <script>
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js');
 let DATA = null;
 let TRANSIT = null;
 let currentView = 'prefectures'; // prefectures | cities | spots
