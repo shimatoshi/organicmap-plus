@@ -1,0 +1,18 @@
+# Large intermediate/source data files
+data/transit/transit_data.json
+data/transit/yahoo_pois.json
+data/transit/yahoo_pois_progress.json
+data/transit/bus_stops.json
+data/transit/enriched_transit.json
+data/transit/wiki_stations.json
+data/transit/all_stations.json
+data/transit/wiki_station_list.json
+data/transit/wikidata_missing.json
+data/transit/.poi_progress.json
+data/transit/overpass_raw/
+
+# Logs and cache
+logs/
+cache/
+__pycache__/
+*.pyc

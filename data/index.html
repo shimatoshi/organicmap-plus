@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organic Maps Plus</title>
+<style>
+:root {
+  --bg: #1a1a2e; --surface: #16213e; --card: #0f3460;
+  --accent: #e94560; --accent2: #4ecdc4; --accent3: #ffa502;
+  --text: #eee; --text-muted: #aab; --radius: 14px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, 'Segoe UI', 'Noto Sans JP', sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 24px;
+}
+h1 { font-size: 1.6em; margin-bottom: 6px; }
+.subtitle { color: var(--text-muted); font-size: 0.9em; margin-bottom: 32px; }
+.cards { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; max-width: 700px; }
+.card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 28px 32px; width: 300px;
+  text-decoration: none; color: var(--text);
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.4); }
+.card-icon { font-size: 2em; margin-bottom: 12px; }
+.card h2 { font-size: 1.15em; margin-bottom: 6px; }
+.card p { color: var(--text-muted); font-size: 0.85em; line-height: 1.6; }
+.card .stat { margin-top: 10px; font-size: 0.78em; color: var(--accent2); }
+footer { margin-top: 40px; font-size: 0.75em; color: var(--text-muted); }
+footer a { color: var(--accent2); text-decoration: none; }
+</style>
+</head>
+<body>
+<h1>Organic Maps Plus</h1>
+<div class="subtitle">日本全国の交通・名所データビューワー</div>
+
+<div class="cards">
+  <a class="card" href="transit/viewer.html">
+    <div class="card-icon">🚉</div>
+    <h2>交通データ</h2>
+    <p>全国10,460駅の路線情報、周辺施設、高評価グルメ、バス停を検索・閲覧</p>
+    <div class="stat">10,460駅 / 736,665 POI / 8ジャンル</div>
+  </a>
+  <a class="card" href="spots/viewer.html">
+    <div class="card-icon">📍</div>
+    <h2>名所ガイド</h2>
+    <p>都道府県・市区町村から名所を探索。画像・解説付き</p>
+    <div class="stat">47都道府県 / 5,001名所</div>
+  </a>
+</div>
+
+<footer>Data: OpenStreetMap / Yahoo Maps / Wikipedia &mdash; <a href="https://github.com/shimatoshi/organicmap-plus">GitHub</a></footer>
+</body>
+</html>

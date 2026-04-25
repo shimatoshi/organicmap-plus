@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>名所ガイド - Organic Maps Plus</title>
+<style>
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --card: #0f3460;
+  --accent: #e94560;
+  --text: #eee;
+  --text-muted: #aab;
+  --radius: 12px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'Segoe UI', 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+header {
+  background: var(--surface);
+  padding: 16px 20px;
+  position: sticky; top: 0; z-index: 100;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+header h1 { font-size: 1.1em; white-space: nowrap; }
+#search {
+  flex: 1; min-width: 180px;
+  padding: 8px 14px; border-radius: 8px; border: none;
+  background: var(--bg); color: var(--text);
+  font-size: 0.95em; outline: none;
+}
+#search::placeholder { color: var(--text-muted); }
+#breadcrumb {
+  width: 100%; font-size: 0.85em; color: var(--text-muted);
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+#breadcrumb span { cursor: pointer; text-decoration: underline; }
+#breadcrumb span:hover { color: var(--accent); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px; padding: 20px;
+}
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.card h2 { font-size: 1.1em; margin-bottom: 4px; }
+.card .sub { color: var(--text-muted); font-size: 0.85em; }
+.card .count {
+  position: absolute; top: 12px; right: 14px;
+  background: var(--accent); color: #fff;
+  padding: 2px 8px; border-radius: 12px; font-size: 0.75em;
+}
+
+/* Spot card */
+.spot-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.15s;
+}
+.spot-card:hover { transform: translateY(-2px); }
+.spot-header {
+  padding: 16px 20px;
+}
+.spot-header h3 { font-size: 1.05em; margin-bottom: 4px; }
+.spot-header .spot-summary { color: var(--text-muted); font-size: 0.88em; }
+.spot-actions {
+  display: flex; gap: 8px; padding: 0 20px 16px;
+}
+.btn {
+  padding: 8px 16px; border-radius: 8px; border: none;
+  font-size: 0.88em; cursor: pointer; transition: background 0.15s;
+  font-weight: 500;
+}
+.btn-img {
+  background: var(--accent); color: #fff;
+}
+.btn-img:hover { background: #d63851; }
+.btn-desc {
+  background: rgba(255,255,255,0.1); color: var(--text);
+}
+.btn-desc:hover { background: rgba(255,255,255,0.18); }
+
+/* Modal overlay */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.85);
+  justify-content: center; align-items: center;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+
+.modal-img {
+  max-width: 95vw; max-height: 85vh;
+  border-radius: var(--radius);
+  object-fit: contain;
+}
+.modal-close {
+  position: fixed; top: 16px; right: 20px;
+  background: rgba(255,255,255,0.15); color: #fff;
+  border: none; width: 40px; height: 40px; border-radius: 50%;
+  font-size: 1.3em; cursor: pointer; z-index: 210;
+}
+.modal-close:hover { background: var(--accent); }
+.modal-desc-btn {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 210;
+}
+
+/* Description panel */
+.desc-panel {
+  display: none;
+  position: fixed; inset: 0; z-index: 250;
+  background: rgba(0,0,0,0.92);
+  overflow-y: auto; padding: 60px 20px 40px;
+}
+.desc-panel.active { display: block; }
+.desc-content {
+  max-width: 680px; margin: 0 auto;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 32px; line-height: 1.9;
+  font-size: 0.95em;
+}
+.desc-content h1, .desc-content h2, .desc-content h3 {
+  color: var(--accent); margin: 20px 0 8px;
+}
+.desc-content h1 { font-size: 1.3em; }
+.desc-content h2 { font-size: 1.15em; }
+.desc-content p { margin: 8px 0; }
+.desc-content ul, .desc-content ol { padding-left: 24px; margin: 8px 0; }
+.desc-close {
+  position: fixed; top: 16px; right: 20px;
+  background: rgba(255,255,255,0.15); color: #fff;
+  border: none; width: 40px; height: 40px; border-radius: 50%;
+  font-size: 1.3em; cursor: pointer; z-index: 260;
+}
+.desc-close:hover { background: var(--accent); }
+
+/* Back button */
+#back-btn {
+  display: none;
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--accent); color: #fff;
+  border: none; width: 48px; height: 48px; border-radius: 50%;
+  font-size: 1.3em; cursor: pointer; z-index: 90;
+  box-shadow: 0 4px 16px rgba(233,69,96,0.4);
+}
+
+#loading {
+  text-align: center; padding: 60px; color: var(--text-muted);
+  font-size: 1.1em;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>名所ガイド</h1>
+  <a href="../index.html" style="color:#4ecdc4;font-size:12px;text-decoration:none;white-space:nowrap">トップへ</a>
+  <a href="../transit/viewer.html" style="color:#e94560;font-size:12px;text-decoration:none;white-space:nowrap">交通データ</a>
+  <input id="search" type="text" placeholder="市区町村名で検索...">
+  <div id="breadcrumb"></div>
+</header>
+
+<div id="content">
+  <div id="loading">データを読み込み中...</div>
+</div>
+
+<button id="back-btn" onclick="goBack()">←</button>
+
+<!-- Image modal -->
+<div class="modal-overlay" id="img-modal">
+  <button class="modal-close" onclick="closeImgModal()">×</button>
+  <img class="modal-img" id="modal-img" src="" alt="">
+  <button class="btn btn-desc modal-desc-btn" id="modal-desc-btn" onclick="openDescFromModal()">説明を見る</button>
+</div>
+
+<!-- Description panel -->
+<div class="desc-panel" id="desc-panel">
+  <button class="desc-close" onclick="closeDesc()">×</button>
+  <div class="desc-content" id="desc-content"></div>
+</div>
+
+<script>
+let DATA = null;
+let TRANSIT = null;
+let currentView = 'prefectures'; // prefectures | cities | spots
+let currentPref = null;
+let currentCity = null;
+let pendingDesc = null;
+
+// Minimal markdown renderer
+function renderMd(text) {
+  return text
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hul])/gm, function(m) { return m ? '<p>' + m : m; });
+}
+
+async function loadData() {
+  try {
+    const [spotsResp, transitResp] = await Promise.all([
+      fetch('spots_data.json'),
+      fetch('../transit/index.json').catch(() => null)
+    ]);
+    DATA = await spotsResp.json();
+    if (transitResp && transitResp.ok) TRANSIT = await transitResp.json();
+    showPrefectures();
+  } catch(e) {
+    document.getElementById('content').innerHTML =
+      '<div id="loading">spots_data.json が見つかりません。build_spots.py を実行してください。</div>';
+  }
+}
+
+function showPrefectures() {
+  currentView = 'prefectures';
+  currentPref = null;
+  currentCity = null;
+  updateBreadcrumb();
+  document.getElementById('back-btn').style.display = 'none';
+
+  const prefs = Object.keys(DATA.prefectures);
+  let html = '<div class="grid">';
+  for (const p of prefs) {
+    const d = DATA.prefectures[p];
+    const cityCount = Object.keys(d.cities).length;
+    html += `<div class="card" onclick="showCities('${p}')">
+      <h2>${p}</h2>
+      <div class="sub">${d.area || ''}</div>
+      <div class="count">${cityCount} 市区町村</div>
+    </div>`;
+  }
+  html += '</div>';
+  document.getElementById('content').innerHTML = html;
+}
+
+function showCities(pref) {
+  currentView = 'cities';
+  currentPref = pref;
+  currentCity = null;
+  updateBreadcrumb();
+  document.getElementById('back-btn').style.display = 'block';
+
+  const cities = DATA.prefectures[pref].cities;
+  const q = document.getElementById('search').value.toLowerCase();
+  let html = '<div class="grid">';
+  for (const [cid, c] of Object.entries(cities)) {
+    if (q && !c.name.toLowerCase().includes(q) && !cid.includes(q)) continue;
+    html += `<div class="card" onclick="showSpots('${pref}','${cid}')">
+      <h2>${c.name}</h2>
+      <div class="count">${c.spots.length} 名所</div>
+    </div>`;
+  }
+  html += '</div>';
+  document.getElementById('content').innerHTML = html;
+}
+
+function showSpots(pref, cityId) {
+  currentView = 'spots';
+  currentPref = pref;
+  currentCity = cityId;
+  updateBreadcrumb();
+  document.getElementById('back-btn').style.display = 'block';
+
+  const city = DATA.prefectures[pref].cities[cityId];
+  let html = `<div style="padding:20px"><h2 style="margin-bottom:16px">${city.name} の名所</h2></div><div class="grid">`;
+  for (let i = 0; i < city.spots.length; i++) {
+    const spot = city.spots[i];
+    html += `<div class="spot-card">
+      <div class="spot-header">
+        <h3>${spot.name}</h3>
+        <div class="spot-summary">${spot.summary || ''}</div>
+      </div>
+      <div class="spot-actions">
+        <button class="btn btn-img" onclick="openImg('${spot.img}','${pref}','${cityId}',${i})">画像を見る</button>
+        <button class="btn btn-desc" onclick="openDescDirect('${pref}','${cityId}',${i})">説明を見る</button>
+      </div>
+    </div>`;
+  }
+  html += '</div>';
+
+  // Nearby stations from transit data
+  if (TRANSIT) {
+    const stations = TRANSIT.stations.filter(s => s.pref === pref);
+    if (stations.length) {
+      html += `<div style="padding:0 20px 20px"><div style="margin-top:12px;padding:16px;background:var(--surface);border-radius:var(--radius)">
+        <h3 style="font-size:0.95em;color:#4ecdc4;margin-bottom:10px">🚉 ${pref}の駅一覧 (${stations.length}駅)</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">`;
+      for (const st of stations) {
+        const star = st.tr ? ` ★${st.tr.star}` : '';
+        const param = encodeURIComponent(st.name);
+        html += `<a href="../transit/viewer.html#station=${param}" target="_blank"
+          style="display:inline-block;padding:3px 10px;background:var(--card);border-radius:8px;color:var(--text);text-decoration:none;font-size:0.82em;transition:background 0.15s"
+          onmouseover="this.style.background='#e94560'" onmouseout="this.style.background='var(--card)'"
+          >${st.name}<span style="color:#ffa502;font-size:0.9em">${star}</span></a>`;
+      }
+      html += '</div></div></div>';
+    }
+  }
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function openImg(imgPath, pref, cityId, idx) {
+  pendingDesc = {pref, cityId, idx};
+  document.getElementById('modal-img').src = imgPath;
+  document.getElementById('img-modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeImgModal() {
+  document.getElementById('img-modal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function openDescDirect(pref, cityId, idx) {
+  closeImgModal();
+  const spot = DATA.prefectures[pref].cities[cityId].spots[idx];
+  const text = spot.desc || '';
+  document.getElementById('desc-content').innerHTML = text ? renderMd(text) : '<p>説明がありません。</p>';
+  document.getElementById('desc-panel').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function openDescFromModal() {
+  if (pendingDesc) openDescDirect(pendingDesc.pref, pendingDesc.cityId, pendingDesc.idx);
+}
+
+function closeDesc() {
+  document.getElementById('desc-panel').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function updateBreadcrumb() {
+  const bc = document.getElementById('breadcrumb');
+  let parts = [`<span onclick="showPrefectures()">全国</span>`];
+  if (currentPref) parts.push(`<span onclick="showCities('${currentPref}')">${currentPref}</span>`);
+  if (currentCity) {
+    const name = DATA.prefectures[currentPref].cities[currentCity].name;
+    parts.push(`<span>${name}</span>`);
+  }
+  bc.innerHTML = parts.join(' > ');
+}
+
+function goBack() {
+  if (currentView === 'spots') showCities(currentPref);
+  else if (currentView === 'cities') showPrefectures();
+}
+
+// Search
+document.getElementById('search').addEventListener('input', function() {
+  if (currentView === 'cities' && currentPref) showCities(currentPref);
+  else if (currentView === 'prefectures') {
+    const q = this.value.toLowerCase();
+    if (q.length >= 1) {
+      // Search across all prefectures for matching cities
+      let html = '<div class="grid">';
+      let found = 0;
+      for (const [pref, pd] of Object.entries(DATA.prefectures)) {
+        for (const [cid, c] of Object.entries(pd.cities)) {
+          if (c.name.includes(q) || cid.includes(q)) {
+            html += `<div class="card" onclick="showSpots('${pref}','${cid}')">
+              <h2>${c.name}</h2>
+              <div class="sub">${pref}</div>
+              <div class="count">${c.spots.length} 名所</div>
+            </div>`;
+            found++;
+          }
+        }
+      }
+      html += '</div>';
+      if (found) document.getElementById('content').innerHTML = html;
+    } else {
+      showPrefectures();
+    }
+  }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (document.getElementById('desc-panel').classList.contains('active')) closeDesc();
+    else if (document.getElementById('img-modal').classList.contains('active')) closeImgModal();
+    else goBack();
+  }
+});
+
+// Click outside to close modal
+document.getElementById('img-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeImgModal();
+});
+
+loadData().then(() => {
+  // Handle deep link: #cityId@pref
+  const hash = decodeURIComponent(location.hash.replace('#',''));
+  if (hash.includes('@') && DATA) {
+    const [cid, pref] = hash.split('@');
+    if (DATA.prefectures[pref] && DATA.prefectures[pref].cities[cid]) {
+      showSpots(pref, cid);
+    }
+  }
+});
+</script>
+</body>
+</html>
