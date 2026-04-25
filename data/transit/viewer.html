@@ -132,7 +132,7 @@ body { font-family:-apple-system,'Segoe UI','Noto Sans JP',sans-serif; backgroun
 <button id="map-toggle" onclick="toggleMap()">地図を表示</button>
 
 <script>
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js');
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('../sw.js', {scope: '../'});
 let INDEX = null;
 let SPOTS_IDX = null;
 const prefCache = {};
