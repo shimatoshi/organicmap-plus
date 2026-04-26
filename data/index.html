@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1a2e">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -64,7 +64,7 @@ footer a { color: var(--accent2); text-decoration: none; }
 <footer>Data: OpenStreetMap / Yahoo Maps / Wikipedia &mdash; <a href="https://github.com/shimatoshi/organicmap-plus">GitHub</a></footer>
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
+  navigator.serviceWorker.register('./sw.js', {scope: './'});
 }
 
 let deferredPrompt;
